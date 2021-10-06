@@ -1,8 +1,42 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
+set -x
 set -euo pipefail
 
-cd "${STEAMAPPDIR}"
+pushd "${STEAMAPPDIR}"
+
+mkdir -p csgo
+pushd csgo
+
+install_mod() {
+  local mod_name="${1}"
+  local mod_dir="${2}"
+  local mod_version_file="${mod_dir}/version.txt"
+  local mod_version="${3}"
+  local mod_url="${4}"
+
+  if [[ -n "${mod_version}" ]] && [[ -f "${mod_version_file}" ]] && [[ "$(cat "${version_file}")" == "${mod_version}" ]]; then
+    echo "${mod_name} ${mod_version} already installed."
+  else
+    rm -rf "${mod_dir}"*
+
+    if [[ -n "${mod_version}" ]]; then
+      echo "Installing ${mod_name} ${mod_version}."
+      curl -sSfL "${mod_url}" | tar -xvz
+      echo "${mod_version}" > "${mod_version_file}"
+    fi
+  fi
+}
+
+install_mod MetaMod addons/metamod \
+  "${METAMOD_VERSION-}" \
+  "https://mms.alliedmods.net/mmsdrop/${METAMOD_VERSION%.*}/mmsource-${METAMOD_VERSION}-linux.tar.gz"
+
+install_mod SourceMod addons/sourcemod \
+  "${SOURCEMOD_VERSION-}" \
+  "https://sm.alliedmods.net/smdrop/${SOURCEMOD_VERSION%.*}/sourcemod-${SOURCEMOD_VERSION}-linux.tar.gz"
+
+popd
 
 cat <<EOF > "${STEAMAPPDIR}/csgo_update.txt"
 @ShutdownOnFailedCommand 1
@@ -13,7 +47,7 @@ app_update 740 validate
 quit
 EOF
 
-"${STEAMCMDDIR}/steamcmd.sh" +runscript "${STEAMAPPDIR}/csgo_update.txt"
+steamcmd +runscript "${STEAMAPPDIR}/csgo_update.txt"
 
 if [[ "${1:-}" = --no-start ]]; then
   exit 0
