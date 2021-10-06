@@ -10,31 +10,39 @@ pushd csgo
 
 install_mod() {
   local mod_name="${1}"
-  local mod_dir="${2}"
+  local mod_dir="addons/$(echo "${mod_name}" | tr '[[:upper:]]' '[[:lower:]]')"
+  local mod_id="${2}"
   local mod_version_file="${mod_dir}/version.txt"
   local mod_version="${3}"
-  local mod_url="${4}"
+  local mod_url_prefix="${4}"
 
-  if [[ -n "${mod_version}" ]] && [[ -f "${mod_version_file}" ]] && [[ "$(cat "${version_file}")" == "${mod_version}" ]]; then
-    echo "${mod_name} ${mod_version} already installed."
+  if [[ -n "${mod_version}" ]]; then
+    file_name="$(curl -sSfL "${mod_url_prefix}/${mod_version}/${mod_id}-latest-linux")"
+
+    if [[ -f "${mod_version_file}" ]]; then
+      if [[ "$(cat "${version_file}")" == "${file_name}" ]]; then
+        echo "${mod_name} ${mod_version} already up-to-date."
+        return
+      fi
+
+      echo "Updating ${mod_name} ${mod_version}."
+    else
+      echo "Installing ${mod_name} ${mod_version}."
+    fi
+
+    rm -rf "${mod_dir}"*
+    curl -sSfL "${mod_url_prefix}/${mod_version}/${file_name}" | tar -xvz
+    echo "${file_name}" > "${mod_version_file}"
   else
     rm -rf "${mod_dir}"*
-
-    if [[ -n "${mod_version}" ]]; then
-      echo "Installing ${mod_name} ${mod_version}."
-      curl -sSfL "${mod_url}" | tar -xvz
-      echo "${mod_version}" > "${mod_version_file}"
-    fi
   fi
 }
 
-install_mod MetaMod addons/metamod \
-  "${METAMOD_VERSION-}" \
-  "https://mms.alliedmods.net/mmsdrop/${METAMOD_VERSION%.*}/mmsource-${METAMOD_VERSION}-linux.tar.gz"
+install_mod MetaMod mmsource \
+  "${METAMOD_VERSION-}" "https://mms.alliedmods.net/mmsdrop"
 
-install_mod SourceMod addons/sourcemod \
-  "${SOURCEMOD_VERSION-}" \
-  "https://sm.alliedmods.net/smdrop/${SOURCEMOD_VERSION%.*}/sourcemod-${SOURCEMOD_VERSION}-linux.tar.gz"
+install_mod SourceMod sourcemod \
+  "${SOURCEMOD_VERSION-}" "https://sm.alliedmods.net/smdrop"
 
 popd
 

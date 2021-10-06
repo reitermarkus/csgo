@@ -1,7 +1,11 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
 image='reitermarkus/csgo'
 
-metamod_version=1.11.0-git1145
-sourcemod_version=1.10.0-git6515
+metamod_version=1.11
+sourcemod_version=1.10
 
 docker build -f Dockerfile \
   -t "${image}" \
