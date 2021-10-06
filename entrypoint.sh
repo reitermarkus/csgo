@@ -118,7 +118,7 @@ exit_code=0
   ${RCON_PASSWORD++rcon_password "${RCON_PASSWORD}"} \
   ${PASSWORD++sv_password "${PASSWORD}"} \
   ${REGION++sv_region "${REGION}"} \
-  ${HOSTNAME++hostname "${HOSTNAME}"} \
+  ${SERVER_NAME++hostname "\"${SERVER_NAME}\""} \
   &
 server_pid=$!
 
