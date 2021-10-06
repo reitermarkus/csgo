@@ -80,10 +80,8 @@ exec "${STEAMEXE}" "${@}"
 EOF
 chmod +x "${SERVER_DIR}/steam.sh"
 
-export LD_LIBRARY_PATH="${SERVER_DIR}:${SERVER_DIR}/bin${LD_LIBRARY_PATH+:${LD_LIBRARY_PATH}}"
-
 exit_code=0
-"${SERVER_DIR}/srcds_linux" \
+bash "${SERVER_DIR}/srcds_run" \
   -game csgo \
   -console \
   -autoupdate \
@@ -128,6 +126,7 @@ wait_for_server() {
 }
 
 graceful_shutdown() {
+  trap - INT
   signal="${1}"
   echo "Received ${signal}, shutting down."
   # `SIGTERM` results in an immediate shutdown,

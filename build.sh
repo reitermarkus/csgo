@@ -22,6 +22,8 @@ docker build -f Dockerfile \
   --build-arg SOURCEMOD_VERSION="${sourcemod_version}" \
   .
 
-docker push "${image}"
-docker push "${image}:metamod"
-docker push "${image}:sourcemod"
+if [[ "${1-}" == --push ]]; then
+  docker push "${image}"
+  docker push "${image}:metamod"
+  docker push "${image}:sourcemod"
+fi

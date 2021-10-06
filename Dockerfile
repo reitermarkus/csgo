@@ -7,6 +7,10 @@ RUN apt-get update \
       tini \
  && rm -rf /var/lib/apt/lists/*
 
+RUN groupadd -g 1000 csgo \
+ && useradd -u 1000 -g 1000 csgo
+USER csgo
+
 EXPOSE 27015/tcp 27015/udp 27020/udp
 
 ARG METAMOD_VERSION
