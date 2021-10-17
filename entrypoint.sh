@@ -7,6 +7,7 @@ CONFIG_DIR=/config
 mkdir -p "${CONFIG_DIR}"
 
 SERVER_DIR=/server
+VERSION_FILE="${SERVER_DIR}/version.txt"
 mkdir -p "${SERVER_DIR}"
 pushd "${SERVER_DIR}"
 
@@ -14,6 +15,56 @@ mkdir -p csgo
 pushd csgo
 
 ln -sfn "${CONFIG_DIR}" cfg
+
+app_id=740
+
+fetch_build_id() {
+  steamcmd \
+    +@ShutdownOnFailedCommand 1 \
+    +@NoPromptForPassword 1 \
+    +login anonymous \
+    +app_info_update 1 \
+    +app_info_print "${app_id}" \
+    +quit | \
+      sed '1,/"branches"/d' | \
+      sed '1,/"public"/d' | \
+      sed '/\}/q' | \
+      sed -n -E 's/.*"buildid"\s+"([0-9]+)".*/\1/p'
+}
+
+
+fetch_build_id
+
+update() {
+  steamcmd \
+    +@ShutdownOnFailedCommand 1 \
+    +@NoPromptForPassword 1 \
+    +login anonymous \
+    +force_install_dir "${SERVER_DIR}" \
+    +app_update "${app_id}" -validate \
+    +quit
+
+  echo "${1}" > "${VERSION_FILE}"
+}
+
+update_if_needed() {
+  latest_version="$(fetch_build_id)"
+
+  if installed_version="$(cat "${VERSION_FILE}" 2>/dev/null)"; then
+    if [[ "${installed_version}" -eq "${latest_version}" ]]; then
+      echo "Server version ${installed_version} is up-to-date."
+      return
+    fi
+
+    echo "Updating server from version ${installed_version} to ${latest_version}."
+  else
+    echo "Installing server version ${latest_version} …"
+  fi
+
+  update "${latest_version}"
+}
+
+update_if_needed
 
 install_mod() {
   local mod_name="${1}"
@@ -53,42 +104,16 @@ install_mod SourceMod sourcemod \
 
 popd
 
-UPDATE_SCRIPT="${SERVER_DIR}/csgo_update.txt"
-
-cat <<EOF > "${UPDATE_SCRIPT}"
-@ShutdownOnFailedCommand 1
-@NoPromptForPassword 1
-login anonymous
-force_install_dir "${SERVER_DIR}"
-app_update 740 validate
-quit
-EOF
-
-if ! [[ -f srcds_run ]]; then
-  steamcmd +runscript "${UPDATE_SCRIPT}"
-fi
-
 touch "${CONFIG_DIR}/server.cfg"
 touch "${CONFIG_DIR}/gamemode_competitive_server.cfg"
 touch "${CONFIG_DIR}/gamemode_casual_server.cfg"
-
-# There is no `steam.sh`, so create a wrapper
-# and point `-steam_dir` to it.
-cat <<'EOF' > "${SERVER_DIR}/steam.sh"
-#!/usr/bin/env bash
-exec "${STEAMEXE}" "${@}"
-EOF
-chmod +x "${SERVER_DIR}/steam.sh"
 
 exit_code=0
 bash "${SERVER_DIR}/srcds_run" \
   -game csgo \
   -console \
-  -autoupdate \
   -norestart \
   -steamerr \
-  -steam_dir "${SERVER_DIR}" \
-  -steamcmd_script "${UPDATE_SCRIPT}" \
   -usercon \
   \
   ${GAME_TYPE++game_type "${GAME_TYPE}"} \
@@ -127,6 +152,7 @@ wait_for_server() {
 
 graceful_shutdown() {
   trap - INT
+  trap - TERM
   signal="${1}"
   echo "Received ${signal}, shutting down."
   # `SIGTERM` results in an immediate shutdown,
