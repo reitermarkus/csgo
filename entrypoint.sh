@@ -18,11 +18,16 @@ ln -sfn "${CONFIG_DIR}" cfg
 
 app_id=740
 
-fetch_build_id() {
-  steamcmd \
+steamcmd() {
+  "${STEAMCMDDIR}/steamcmd.sh" \
     +@ShutdownOnFailedCommand 1 \
     +@NoPromptForPassword 1 \
     +login anonymous \
+    "${@}"
+}
+
+fetch_build_id() {
+  steamcmd \
     +app_info_update 1 \
     +app_info_print "${app_id}" \
     +quit | \
@@ -32,14 +37,8 @@ fetch_build_id() {
       sed -n -E 's/.*"buildid"\s+"([0-9]+)".*/\1/p'
 }
 
-
-fetch_build_id
-
 update() {
   steamcmd \
-    +@ShutdownOnFailedCommand 1 \
-    +@NoPromptForPassword 1 \
-    +login anonymous \
     +force_install_dir "${SERVER_DIR}" \
     +app_update "${app_id}" -validate \
     +quit
@@ -109,7 +108,7 @@ touch "${CONFIG_DIR}/gamemode_competitive_server.cfg"
 touch "${CONFIG_DIR}/gamemode_casual_server.cfg"
 
 exit_code=0
-bash "${SERVER_DIR}/srcds_run" \
+"${SERVER_DIR}/srcds_run" \
   -game csgo \
   -console \
   -norestart \

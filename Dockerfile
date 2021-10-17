@@ -1,11 +1,4 @@
-FROM steamcmd/steamcmd:latest
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends --no-install-suggests \
-      curl \
-      net-tools \
-      tini \
- && rm -rf /var/lib/apt/lists/*
+FROM cm2network/steamcmd:latest
 
 ARG METAMOD_VERSION
 ENV METAMOD_VERSION="${METAMOD_VERSION}"
