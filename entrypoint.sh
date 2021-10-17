@@ -3,12 +3,7 @@
 set -x
 set -euo pipefail
 
-CONFIG_DIR=/config
-mkdir -p "${CONFIG_DIR}"
-
-SERVER_DIR=/server
 VERSION_FILE="${SERVER_DIR}/version.txt"
-mkdir -p "${SERVER_DIR}"
 pushd "${SERVER_DIR}"
 
 mkdir -p csgo
