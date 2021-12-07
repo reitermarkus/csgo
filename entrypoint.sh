@@ -62,7 +62,8 @@ update_if_needed
 
 install_mod() {
   local mod_name="${1}"
-  local mod_dir="addons/$(echo "${mod_name}" | tr '[:upper:]' '[:lower:]')"
+  local mod_dir
+  mod_dir="addons/$(echo "${mod_name}" | tr '[:upper:]' '[:lower:]')"
   local mod_id="${2}"
   local mod_version_file="${mod_dir}/version.txt"
   local mod_version="${3}"
@@ -72,7 +73,7 @@ install_mod() {
     file_name="$(curl -sSfL "${mod_url_prefix}/${mod_version}/${mod_id}-latest-linux")"
 
     if [[ -f "${mod_version_file}" ]]; then
-      if [[ "$(cat "${version_file}")" == "${file_name}" ]]; then
+      if [[ "$(cat "${mod_version_file}")" == "${file_name}" ]]; then
         echo "${mod_name} ${mod_version} already up-to-date."
         return
       fi
