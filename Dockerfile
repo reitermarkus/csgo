@@ -1,5 +1,7 @@
 FROM cm2network/steamcmd:root
 
+RUN apt-get install -y net-tools
+
 ENV CONFIG_DIR=/config
 ENV SERVER_DIR=/server
 RUN mkdir -p "${CONFIG_DIR}" "${SERVER_DIR}" \
