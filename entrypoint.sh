@@ -104,7 +104,7 @@ touch "${CONFIG_DIR}/gamemode_competitive_server.cfg"
 touch "${CONFIG_DIR}/gamemode_casual_server.cfg"
 
 exit_code=0
-"${SERVER_DIR}/srcds_run" \
+bash "${SERVER_DIR}/srcds_run" \
   -game csgo \
   -console \
   -norestart \
